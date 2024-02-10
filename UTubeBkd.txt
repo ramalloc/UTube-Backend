@@ -1,0 +1,10 @@
+-> Here we are taking images from user So we upload those images on third party Storage :- AWS or Cloudnery. But before uploading those 
+    images on cloud we Store them on our server temporarly for utilising those data in case of any connection loss to send the images on 
+    cloud.
+-> To store temporary images on server we make a folder for that called :- {temp} which is inside of {public} folder. Now git cannot push
+    the empty folders on github, So to upload the {temp} folder on server so that temporary images can be stored in the temp folder in 
+    future. Therefore we make file of {.gitkeep} which is empty, It is helpful in tracking these types of Util Folders.
+
+-> Now we will make {.gitignore} and those files which should not be upload on git. In market we habe ..gitignore generator which consists
+    predefined .gitignore files according to the project/Tech Stack, like here we have-{https://mrkandreev.name/snippets/gitignore-generator/}
+    We just need to copy and paste it in .gitignore file and we can add from our side as well.

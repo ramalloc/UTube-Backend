@@ -8,3 +8,17 @@
 -> Now we will make {.gitignore} and those files which should not be upload on git. In market we habe ..gitignore generator which consists
     predefined .gitignore files according to the project/Tech Stack, like here we have-{https://mrkandreev.name/snippets/gitignore-generator/}
     We just need to copy and paste it in .gitignore file and we can add from our side as well.
+
+-> Now we will make .env file
+
+-> Now to organise our file we make src folder, then we make app.js, constants.js, index.js files in src.
+-> After that we will make some folders in src :- 
+    controller - It includes functionalities majorally, db - It consists database connectivity configurations, 
+    middlewares - They are the codes which we want to run in b/w, like checking the request b/w client and server,
+    models, routes, utils - It consists the repeated functions which are used consecutively / again an again in different files. 
+-> When we make project with team then there is high chance that the code can show conflicts because different style of code which creates
+    issue while merging the code on github. So the formatting of code should be same and consistent. Therefore we use {prettier} as library,
+    the formatting can be changed as every project requirements therefore we can use prettier generator tools as well.
+    After installing the prettier we have to include some files manually, First we have to make a file {.prettierrc} in src folder, It is 
+    configuration file of prettier like :- comma, semicolon etc. details. Second file we make is {.prettierignore}, It consists those
+    file names where we don't want to implement the prettier.

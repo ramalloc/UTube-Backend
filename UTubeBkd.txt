@@ -22,3 +22,42 @@
     After installing the prettier we have to include some files manually, First we have to make a file {.prettierrc} in src folder, It is 
     configuration file of prettier like :- comma, semicolon etc. details. Second file we make is {.prettierignore}, It consists those
     file names where we don't want to implement the prettier.
+
+
+
+
+----> Database Connection
+-> We will add mongodb url and other env in .env file, we don't need '/' in last of mongodb url.
+-> Now we will add and export our Database name in constants.js file as DB_NAME = "UTubeDB"
+-> There are two ways to connnect databse :- 1st is that we can add database connection code in index.js, so when index.js executed our
+    database connection also executed.
+    2nd method is we make different file for database connection code and we will import that file in index.js.
+-> We need dotenv, mongoose and express, so we install it.
+-> So first we will use mongoose to make connection with mongodb. 
+**-> Whenever we try to communicate with database there is high chance that problems can occurs. Therefore we should wrap it in try-catch
+    or in promises.
+**-> "Our Database is always in other Continent", means it takes time to communicate with database therefore we use asyn-await always.
+
+-- 1st Appraoch --
+-> Here we are writing the database connection code using IIFEs - A JavaScript IIFE (Immediately Invoked Function Expression)
+    is a function that runs the moment it is invoked or called in the JavaScript event loop.
+-> We should always write ';' before IIFE because it is possible that previous doesn't have semicolon which may occurs error.
+-> Then we wil wrap code in async and in try-catch, We have to add DB_NAME also after DB_URL/
+-> Sometimes Programmers implement express in index.js file, They add listeners rigth after database connection.
+
+
+-- 2nd Approach -- 
+-> We make a file in db folder and implement the database connection code there, Here We will make a function and export that.
+-> We are using process.exit() in error handling - Calling process.exit() will force the process to exit as quickly as possible even if 
+    there are still asynchronous operations pending that have not yet completed fully, including I/O operations to process.stdout 
+    and process.stderr. In most situations, it is not actually necessary to call process.exit()explicitly.
+    The Node.js process will exit on its own if there is no additional work pending in the event loop.
+    The process.exitCode property can be set to tell the process which exit code to use when the process exits gracefully.
+-> Production, developement and testing have different databases, So {connectionInstance.connection.host} gives the name of host connected. 
+
+-- Setting Dotenv --
+-> As early as possible in your application, import and configure dotenv. We should add in index.js which loads first on server
+    we should add dotenv first and configure. But dotenv adding method disrupt our consistency of importing because it uses require.
+    So here we have to import it then have to configure it as well, takes path of .env file in configuration.
+-> We can use import dotenv as experimental feature, we have to write some commands in "dev" packagae.json after "nodemon" to load 
+    all dotenv configurations but at this time we have to load it as experimental feature.

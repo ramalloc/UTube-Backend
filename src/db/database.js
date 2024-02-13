@@ -3,7 +3,7 @@ import { DB_NAME } from "../constants.js";
 
 const mongoUrl = process.env.MONGODB_URL;
 
-const connectionDB = async () => {
+const connectDB = async () => {
     try {
         const connectionInstance = await mongoose.connect(`${mongoUrl}/${DB_NAME}`)
         console.log(`\n MongoDB connected ! DB Host : ${connectionInstance.connection.host}`); // This will give the host name 
@@ -13,4 +13,4 @@ const connectionDB = async () => {
     }
 } 
 
-export default connectionDB;
+export default connectDB;

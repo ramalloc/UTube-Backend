@@ -61,3 +61,12 @@
     So here we have to import it then have to configure it as well, takes path of .env file in configuration.
 -> We can use import dotenv as experimental feature, we have to write some commands in "dev" packagae.json after "nodemon" to load 
     all dotenv configurations but at this time we have to load it as experimental feature.
+
+
+-- Setting Express --
+-> We initialize the express in app.js and export it. We import app.js in index.js, connectDB is an async function therefore it returns 
+    promise. In index.js after calling connectDB() we get promise so we use then() and catch() for Immediate initialization of express/app
+    listener.
+-> We mainly work in express on request and response. Most used is - req.params which consists the info comes from url, 
+    req.body consists data in forms or json etc, req.coockies used to store or retrieve data in user's browser used by middleware .
+    So we have to install coockie-parser and cors, Whenever we use middlewares we  

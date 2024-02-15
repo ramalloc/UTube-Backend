@@ -68,5 +68,22 @@
     promise. In index.js after calling connectDB() we get promise so we use then() and catch() for Immediate initialization of express/app
     listener.
 -> We mainly work in express on request and response. Most used is - req.params which consists the info comes from url, 
-    req.body consists data in forms or json etc, req.coockies used to store or retrieve data in user's browser used by middleware .
-    So we have to install coockie-parser and cors, Whenever we use middlewares we  
+    req.body consists data in forms or json etc, req.cookies used to store or retrieve data in user's browser used by middleware .
+    So we have to install cookie-parser and cors, Whenever we use middlewares we write it's syntax as using express's app 
+    {app.use(_middleware_)}.
+-> After installing of cors and cookie parser we import them in app.js, Now we have to configure them after executing app.
+    We can configure more in cors, it contains some options which gives contains the accessbility options. We can define origin in options
+    and status as well. In origin we set .env as CORS_ORIGIN Which we have to set in .env file, We set CORS_ORIGIN = * means anyone can 
+    access but we can add vercel, netlify etc as well.
+-> We can get data from url, json, req-body, direct-form, json-form. So it needs some settings like limitation of incoming json data to 
+    prevent from server crash. Now we can configure json with express, Common optionis {express.json({limit:"16kb"})}.
+    Before express version needs middlewares like body-parser to accept can configure json data.
+-> Now we have to configure the datas whose are coming from url, Express gives one more direct configuration to encode the url 
+    {express.urlencoded()} it is sufficient but it also contains some option like "extended", "limit" {express.urlencoded(extended: true, limit: "16kb")}
+    which is used to give objects in objects means helps in nesting of objects.
+-> Another express configuration that we will use is :- static to keep/store file, images, fevicon in public as public asset anyone can 
+    access them.
+
+-> Cooie Parse helps in accessing ans setting the cookies in user's browser by server, means performing CRUD operation on user's browser's
+    coockies. It also helps in to keep secure coockies in browser by server only. Now we configure the cookieParser in app.js.
+    

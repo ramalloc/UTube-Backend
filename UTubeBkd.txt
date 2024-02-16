@@ -87,3 +87,42 @@
 -> Cooie Parse helps in accessing ans setting the cookies in user's browser by server, means performing CRUD operation on user's browser's
     coockies. It also helps in to keep secure coockies in browser by server only. Now we configure the cookieParser in app.js.
     
+
+
+--> middleware - the function/code which checks the request or response of client or server is called middleware. When an api hit
+    it contains (err, req, res, next), Whenever we used next it means that is middleware. {next} is a flag, when middleware code segment
+    completed its task then it forwards to the next middleware using {next} flag. If there is no next middleware in code segment then 
+    it discard the process or done with the process. The arrangement of middleware is also important.
+
+
+
+-- Database Wrapper --
+-> we will communicate with database again and again in user's, video's controller. So we should make an utility file which contains
+    wrapper. Wrapper takes function as method and peforms its operation.
+-> We make a asyncHandler.js utile file. It contains a  higer order funciton which takes a function as parameter and returns function as well.
+    It treats a function as higher order funciton.
+-> We can implement higher order by two methods usuing async try-catch and Promises.
+-> In try-catch method We take (req, res, next) as parameter, taking {next} because we can use it as middleware in future. Then we will implement try-catch.
+    we handle the error by sending response as error code (if user send err code else we send customised err code ) and error message 
+    using json.
+-> In promise method we take the function and return it in the form of promise.
+
+
+-- Error Handling --
+-> When we are returning the error in response and we will send this many times. We don't have any structure or centralize standard to send 
+    error. Now we want to standardize the api response and api's error as well which leads to the standard codebase.
+-> So we have an error class in NodeJs, which contains some functions and constructors We can change them in different extended class.
+    We make a file apiError.js in Utils Folder, We make a class ApiError which is inherited from Error class of NodeJs.
+    We will take the constructor and then we will overwrite then constructor as well. Now whoever use the apiError class they have to 
+    give some data which is defined in constructor. 
+
+-- Api Response Handling -- 
+-> We can trace error in NodeJs but for response we are using Express library. So we make a file to streamline the API Response.
+-> We make a file apiResponse which consists class of ApiResponse. Whenever we send response we send them through this class/file.
+    We set the default data in constructor that it needs like:- statusCode, message and data. We can overwrite them according to data.
+    We have to set success = statusCode < 400, according to the standards.
+
+--> Now we want that whenever there is an error occurs, the error should go throgh the apiError means we have to write middlewares.
+
+
+

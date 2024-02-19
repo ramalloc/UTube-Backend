@@ -133,12 +133,53 @@
 -> We used index in username field in user model, because if we want to make a field searchable in optimize way then we should make     
     the index: true.
 -> We takes references in bith models from each other.
+-- Video --
 -> Aggregation Pipeline framework makes the mongoose powerful for production. So we have to install this library - mongoose-aggregate-paginate-v2
 -> It is A cursor based custom aggregate pagination library for Mongoose with customizable labels.
     So we will import, and initialize/use just before export. In mongoose we make many own middlewares and inject own plugins as well, 
     aggregate pipeline came after plugins. So we use the aggregate in plugin of mongoose, and after that we can perform aggregate operations. 
     here we used in videoSchema.plugin(aggregate).
+-- User --
+    -- password managing using bcrypt --
 -> Now in user model we used bcrypt, bcrypt - A library to help you hash passwords, This library is made on core nodeJs.
     and bcryptJs is Optimized bcrypt in JavaScript with zero dependencies. Compatible to the C++ bcrypt binding on node.js 
     and also working in the browser. Here we will use bcrypt.
-    
+    -- session managing and data protection using jsonwebtoken -- 
+-> jwt is not human readable, it make through algorithm. It encypts and injects the payloads in tokens.  
+
+-> We can't do direct encryption therefore we need some middleware's hooks of mongoose, One of them is pre hook. It implement or run 
+    some code just before the saving the data for encryption.
+-> It take two parameters first is some event(validate, save, remove, updateOne etc) in it to occur, so here we are using for saving the data. 
+    It runs just before saving the data in database.
+    Second parameter is a callback function. But We can't use normal callback function here becuase in arrow function we don't have access 
+    of {this} means it doesn't know the context or it cannot get access of user schema details. These are time taking process therefore 
+    we write in async. Now we have to pass {next} flag to finction because it is a  middleware and when function code writing will get 
+    finished then in last we have to call this {next} to pass the flag ahead. 
+-> Now there we want to that when our details are saving, get the password field and encrypt it and then save it in database using bcrypt.
+    We gave two parameters to bcrypt.hash - what to encrypt and round of hashing. But it can run every time whenever we made changes 
+    in any field and saved the changes, it again changes the password hash. And we want when there is modificaiton in password then it 
+    should save the password in database in hash form or run the Programme of bcrypt only.
+    And there are two condition we want to change the password hash when it is new or it is modified.
+    So we have to check that the password is modified or not using isModified() and we pass the field as String. If password modified 
+    then we will save the password changes else no.  
+-> Now we have to add some methods, Here we will make a method to compare user's input password and the hash saved in database.
+-> So we can inject methods using mongoose, it contains it's own also. But We can make custom methods and inject them using methods.
+    {Schema.methods._method1_} we can add as many custom methods as we want to. we make function of that method which takes password 
+    whenever it runs. We check the password using bcrypt by its method {bcrypt.compare()} which takes user's password and database 
+    password by {this.password} because it has also access of the fileds in database, we make this funciton async. The compare method 
+    return true or false.
+
+
+---> Now we implement JWT, JWt is a bearer token means whoever posses this data can have the access of data.    
+-> JWT need some data to implement, and we write those data in .env file. First is access_token, in production we generate complex
+    string to save as access_token. Second is access token expiry which we can write as 1d means 1 day. Third is refresh_token, here we
+    also keep long string. Fourth is refresh_token_expiry, it has more days/time as compare to access_token like 10d means 10days.
+-> We store our refresh_token in database and not storing access_token in database. Means we our securing sessions and coockies as well.
+-> We can make methods that generates accessToken and refreshToken with mongoose methods. Both are JWT, usage is different.
+-> jwt has a sign method which generates token, it take parameters - first is payload that should be in objects which contains data like 
+    _id, email, userName etc. Now other parameters it takes access_token, and access_token_expiry in object, this function returns token. 
+-> Now we will make method to generate refresh_token as well with same process above. It contains less information as compare to access_token
+    and it's expiry is also more.
+
+
+

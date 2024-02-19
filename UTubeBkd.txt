@@ -126,3 +126,19 @@
 
 
 
+
+
+--- Modeling ---
+-> We make user and video model only because they are tightly coupled with each other oe dependent.
+-> We used index in username field in user model, because if we want to make a field searchable in optimize way then we should make     
+    the index: true.
+-> We takes references in bith models from each other.
+-> Aggregation Pipeline framework makes the mongoose powerful for production. So we have to install this library - mongoose-aggregate-paginate-v2
+-> It is A cursor based custom aggregate pagination library for Mongoose with customizable labels.
+    So we will import, and initialize/use just before export. In mongoose we make many own middlewares and inject own plugins as well, 
+    aggregate pipeline came after plugins. So we use the aggregate in plugin of mongoose, and after that we can perform aggregate operations. 
+    here we used in videoSchema.plugin(aggregate).
+-> Now in user model we used bcrypt, bcrypt - A library to help you hash passwords, This library is made on core nodeJs.
+    and bcryptJs is Optimized bcrypt in JavaScript with zero dependencies. Compatible to the C++ bcrypt binding on node.js 
+    and also working in the browser. Here we will use bcrypt.
+    

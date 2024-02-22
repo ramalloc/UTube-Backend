@@ -233,5 +233,62 @@
 
 
 
+--- HTTP ---
+-> HTTP and HTTPs have same technologu but HTTPs have extra layer of security. The data sending in network will get encrypted where https
+    sends data in clear text not encrypted.
+-> URL - Uniform Resource Locator, URI - Uniform Resource Identifier and URN - Uniform Resource name
+-> HTTP header - When we send a http request then we have to send some information with that request which is called metadata.
+    And the metadata is called http header. 
+-> Metadata - It is key-value pair data sent along with request and response. Metadata is used in Catching, Authentication and 
+    State Management (Knowing about the state of user, is user is logged in or guest).
+-- Type Of Headers --
+-> Request Header comes from client, Response Header comes from Server and it should be standardized, Representation Headers - It tells 
+    the data is in which endcoding and in which compression(zip files, Here we sent the data in compressed form because network has a limit)
+    and Palyload Headers - data
+
+-- Most Common Headers --
+1. Accept - It indicates that which form of data is acceptable like - json
+2. User-Agent - It shows the information source who sends request request like - application, browser etc.
+3. Authorization - Bearer___jwt_token_
+4. Content Type - img, pdg, mp4 etc.
+5. Coockie - It is an object {}, which consists key-value pair data like - unique code, time to save user Coockie etc.
+6. Cache-Control - If the data wants to be in network within a given time 
+
+Although We have some headers like - CORS Headers and Security Headers
+
+-- HTTP Methods --
+-> Basic set of operations that can be used to interact with server.
+• GET : retrieve a resource
+• HEAD : No message body (response headers only)
+• OPTIONS: what operations are available
+• TRACE : loopback test ( get same data)
+• DELETE : remove a tesource
+• PUT : replace a de source
+• POST : interact with resource (mostly add)
+• PATCH : change part of a resource
+
+
+-- HTTP Status Code --
+• 1xx Informational
+• 2xx Success
+• 3xx Redirection
+• 4xx Client extor
+• 5xx server error
+
+100 Continue
+102 Processing
+200 Ok
+201 created
+202 accepted
+307 temporary redirect
+308 permanent redirect
+400 Bad request
+401 Unauthorized
+402 Payment required
+404 Not Found
+500 Internal Server Error
+504 Gate way time Out
+
+
 
 

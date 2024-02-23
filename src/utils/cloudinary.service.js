@@ -1,17 +1,11 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs'
 
-import {
-    cloudinaryCloudName,
-    cloudinaryApiKey,
-    cloudinaryApiSecret,
-} from "./envExporter";
-
 // Now we will configure cloudinary
 cloudinary.config({ 
-  cloud_name: cloudinaryCloudName, 
-  api_key: cloudinaryApiKey, 
-  api_secret: cloudinaryApiSecret 
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET 
 });
 
 const uploadCloudiniary =  async (filePath) => {

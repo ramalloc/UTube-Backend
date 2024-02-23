@@ -315,3 +315,84 @@ Although We have some headers like - CORS Headers and Security Headers
 ->  Now the URL form like this - http://localhost:8000/users/register. But we have to define the versions of api in route 
     , In industry we don't use the route like this - app.use("/users", userRouter), We use this method which is an standardize method - 
      app.use("/api/v1/users", userRouter).
+
+
+-- User Register --
+-> We should breakdown our the problem in small steps
+1. We should get the user data from the front end.
+2. validation - to check the user data is valid according to the user model or not.
+3. We will check that user us already exists or not using email or username.
+4. Check for images and avatar 
+5. Upload them to cloudinary, get the url and we have to check that data is saved on cloudinary successfully or not.
+6. Now we will make an object because we send the data on mongodb as object. So create entry in DB.
+7. When we send data in DB, DB returns that data and we will send the data to the user by removing the password and refresh_token field.
+8. Check for user creation 
+
+-- 1 --  
+-> We use re.body to get the data from user from form or in json. And then we store those details in an object by destructuring the data.
+-> After successfully raw data fetching from user, But we don't have any option to send files therefore we will use multer middleware here.
+-> Now we will use the multer in user routes, so we will import {upload} from multer middleware. Then We will use {upload} as argument in 
+    user route in post just before user controller {userRegisteration}. 
+-> Now this upload gives us many options to send the data but we select fields, So upload.fields() takes argument as an array of objects
+    So we pass two objects here, one for avatar and second for coverImage. We have to give name of data and maxCount of data in options in
+    object. 
+
+-- 2 --
+-> Now we have to validate the data is empty or not, We will implement if-else and check that. But we have many fields and writing if-else
+    for every field will become very hectic, therefore we wil use this method - In if condition block We take all the data in array. And We 
+    will use some() method.
+    
+    The some() method of Array instances tests whether at least one element in the array passes the test implemented by the provided function.
+    It returns true if, in the array, it finds an element for which the provided function returns true; otherwise it returns false. 
+    It doesn't modify the array.
+    
+    the some() which consists an callback and this callback has access of elements of arrayfunction as {field} then in function block
+    if function returns ture for any element, the function becomes true for all element.
+    If field is present then we trim the filed and check is it empty, then we return true. 
+-> So above we are checking if there is any element which is empty then we implement if block code which is error code.
+-> For error handling we made a utility file apiError so we will use that, import that file and use it with {new} keyword to throw the error.
+    We  will fill the details in apiError() to handle the error with standardize way.
+
+-- 3 --
+-> To check the user is already exists or not we will use {User} from user model, Now the user will call the mongodb on behalf of us as 
+    much times we want.
+-> So we import User from models, then we will use its methods like - findOne() which find the data in fields. It takes field in object as
+    argument. But here we want to check for two fields therefore here we have operators which we used with {$}. Here we use or with
+    respect to an array of objects, objects consists the fields like this - {$or: [{field1}, {field2}]}.
+    Now we hold the reference of the User in a variable as existedUser then we perform if-else operation to send error to the user.
+
+-- 4 --
+-> At now we are getting the data from req.body but in files case we used middlewares in routes, then this middleware also gives some access 
+    of data means it adds more fields in request.
+-> So express gives us the body access of req then multer gives us the access of file of req - {req.files}. It is possible that we have 
+    access of files or not therefore we should do optional chaining. If avatar exists then we will use it's 1st property which gives an 
+    object which gives path of the file on server we should also use it with optional chaining. Then we will hold the req.files in 
+    a variable called avatarLocalPath.
+-> Now we will check the file is present or not, atleast the avatar should be present because we made it required in user model.
+
+-- 5 --
+-> then We will upload the file or avatar on cloudinary for which we have a service uploadCloudinary() we will pass the avatarLocalPath
+    as argument in uploadCloudinary(). Now it can take time so we use await here and hold it in a variable avatar.
+    Same used for coverImage.
+    THen we check that file uploaded or not.
+
+-- 6 -- 
+-> Now we save the data in mongodb using User model method create(), It takes data in Object. Here we pass files url and username in 
+    lowerCase.
+-> Now when we are communicating with database it is possible that an error can rise so therefore we write the whole code in our
+    asyncHandler which deals with the error but it will take time so we have to use await and hold the opeartion in a variable called user.
+
+-- 7 --
+-> Now we want to send the data to the User back in  front end, but we don't want some data to forward in frontend like password and 
+    refresh_token.
+-> So we use User Model method finById() to search a user from its _id, So if user created then we can find that user by the above 
+    user's _id field.
+
+-- 8 --
+-> Now we check for user creation successfully or not, For that we can chain in the above finById() method with select() on user fields.
+    it takes field's names in String to select that fields. But here we want to unselect the fileds so we can use in fileds {-ve} sign.
+-> We will take the user's details with the above unselected fileds in a variable createdUser and return it to the frontend.
+
+-- 9 --
+-> Now we will send the user details to the front end with unselected fields, for this we are using our utility file apiResponse.
+-> We will return the the response with status code and json, the json is consisting the ApiResponse() funciton which takes some details. 

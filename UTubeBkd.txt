@@ -292,3 +292,26 @@ Although We have some headers like - CORS Headers and Security Headers
 
 
 
+---- Router and Controller ----
+-> Now we wil Register the User, So will make a file in in controller folder as user.controller.js . In Util we make helper file of an
+    asynHandler wrapper to handle promises and error so that we don't need to use try-catch again and again. So we import asyncHandler in
+    user controller.
+-> Here we will write a function in asyncHandler Wrapper and hold it in a variable registerUser, then we pass a async function in 
+    asyncHandler which is a higer order funciton. Now in response we send status code 200 and a message "ok".
+
+-- Routes --
+-> We made controller but the methods runs when an URL hitted, So we have to setup the routes.
+-> So we make a user.route.js which is a user router file in routes folder. We import Router in it, initialized as router it and export it.  
+
+
+-> So we exported the user controller and user route, now we will import both in app.js we can import in index.js but we want to keep it 
+    clean.
+-> Now we will import user router in index.js, we will import route after the previous configuration of app.js.
+-> Now we will declare the routes before we were using app.get() method because we were writing routes in app.js the router is not in 
+    different file. But in this case user router is in different file therefore to get the router in this file we will use middleware 
+    so we use app.use() method.
+-> Then we make route using router, we use router's method route() which takes the endpoint ("/register"). After that putting {.}  we can
+    access the methods like get, post, put etc. then we pass the user controller (registerUser) in get(), post(registerUser) as argument.
+->  Now the URL form like this - http://localhost:8000/users/register. But we have to define the versions of api in route 
+    , In industry we don't use the route like this - app.use("/users", userRouter), We use this method which is an standardize method - 
+     app.use("/api/v1/users", userRouter).

@@ -396,3 +396,18 @@ Although We have some headers like - CORS Headers and Security Headers
 -- 9 --
 -> Now we will send the user details to the front end with unselected fields, for this we are using our utility file apiResponse.
 -> We will return the the response with status code and json, the json is consisting the ApiResponse() funciton which takes some details. 
+
+
+--- Postman ---
+-> There is postman collection which has to be share with frontend.
+-> Now we will send the data in postman with form-data, here we are using form data because in JSON we don't have option to send files. 
+-> After sending post request from postman the user has been registered and image has been uploaded in cloudinary. Now we have to unlink
+    the file from file system means we after uploading image successfully we need to remove the image or file from file system.
+    We will do this in cloudinary service after successfully upload.
+-> Now we tried to send data without coverImage, then we can get an undefined error which is the issue of core JavaScript here beccause 
+    we are using optional chaining. We have to check coverImage with classic if-else appraoch, in if bloack we will check for req.files    
+    is present or not && checked for array of coverImage by using Array method isArray(req.files.coverImage)  && we will check for the 
+    length of array of coverImage is > 0 or not.
+-> If the above if block is true then we will set the localPath for coverImage.
+-> After the above process we are able to send the the data without coverImage.
+-> Now we will configure the Postman by a=making collections and adding environment variables.

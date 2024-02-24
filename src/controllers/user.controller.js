@@ -7,7 +7,9 @@ import {ApiResponse} from "../utils/apiResponse.js"
 const registerUser = asyncHandler(async (req, res) => {
     // Getting the data
     const { fullName, username, email, password } = req.body
-    console.log("email : ", email);
+
+    // Checking data is getting or not
+    // console.log("email : ", email);
 
     // Validaion of Data 
     if (
@@ -19,7 +21,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
     // User Existed or not
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{username}, {email}]
     })
     
@@ -29,7 +31,15 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Checking Images and avatar
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+    if(req.file && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
+
+    // Checking the the return response of req.files
+    // console.log(req.files);
 
     if(!avatarLocalPath){
         throw new ApiError(403, "Avatar file is required...")
@@ -50,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
         password, 
-        username: username.lowerCase(),
+        username: username.toLowerCase(),
         email
     })
 

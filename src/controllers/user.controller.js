@@ -107,7 +107,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body
 
     // Validating username or email
-    if (!username || !email) {
+    if (!(username || email)) {
         throw new ApiError(403, "username or email required...");
     }
 
@@ -123,7 +123,7 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     // Comparing Password and sending error
-    const isPasswordValid = await user.isPassword(user.password);
+    const isPasswordValid = await user.isPasswordCorrect(password);
 
     // Checking password is corrector not
     if (!isPasswordValid) {
@@ -132,7 +132,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 
     // Generating Tokens for the user
-    const { accessToken, refreshToken } = generateAccessAndRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
 
     // Holding the details of user without password and refreshToken
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
@@ -149,11 +149,13 @@ const loginUser = asyncHandler(async (req, res) => {
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
-            200,
-            {
-                user: loggedInUser, accessToken, refreshToken
-            },
-            "User logged In Successfully..."
+            new ApiResponse(
+                200,
+                {
+                    user: loggedInUser, accessToken, refreshToken
+                },
+                "User logged In Successfully..."
+            )
         )
 })
 
@@ -179,12 +181,12 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
 
     return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(
-        new ApiResponse(200, {}, "User Logged Out Successfully...!")
-    )
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(
+            new ApiResponse(200, {}, "User Logged Out Successfully...!")
+        )
 
 })
 

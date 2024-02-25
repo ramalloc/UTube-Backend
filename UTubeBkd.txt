@@ -477,3 +477,46 @@ Although We have some headers like - CORS Headers and Security Headers
 
 
 
+--- Logout User in User Controller ---
+-> We make a method called logoutUser() managed by asynHandler. Now we breakdown the problem in steps.
+1. Clear cookies
+2. remove refresh_token from user's database as well
+
+-> Now we have idea of operatins but the problem is we don't have access of user. For this we will design our own middleware.
+-> We make a auth.middleware.js file in middleware folder which verifies that user is present or not. We verify on the basis of tokens
+    because when user logged in they gets tokens, this is the true loggin. We verify that the user has correct tokens or not.
+-> If tokens are valid then we inject an object req.user in req.body 
+-> So we will use asynHandler here the function takes (req, res, next) because it is middleware. Now we have access of all cookies here in 
+    request.
+-> We can access the accessToken through cookies but we do optional chaining here because it is possible that there is not access of 
+    accessToken in cookies in the case of mobile application means user is sending custom header. So we will check the req.header() method,
+    the common header we get from the user is "Authorization" as argument in req.header("Authorization"). But the header Authorization
+    header contains : Bearer "token", So we need to replace this {Bearer } with {""} empty string using JavaScript and hold it in a variable
+    called token.
+-> Now if token is not present then throw an error using ApiError(). But if token is present then should check the token using jwt.
+    So we import jwt, using jwt we decoding the details of user from the token. To verify we have jwt.verify() method which takes token and
+    access_token_secret to decode the token. also hold that in a variabel called {decodedToken}.
+    This access_token_secret is the access to decode the token.
+-> After getting decodedToken the details from jwt, We get _id from the decodedToken and search for the _id in mongodb using User model 
+    method findById() and also we write it await and stores in a variabel called {user}.
+-> Now if user is not present then send error throgh ApiError(). 
+-> If user is present, as we have access of request then we inject an object in it by {req.user = user} then we add next() in last.
+-> We mainly use the middlewares in Routes.
+-> We have to wrap the whole text in try-catch
+** Shortcut of vscode to wrap any code in try-catch - Select the code that want to be in try-catch, then after selection write try-catch 
+    and enter, the code will be in try catch.**
+
+-- Adding Route for Login in User Routes --
+-> Make a route in user Route, We made a route for login. Make a secure route section and write route for logout, in post() before login
+    controller add verifyJWT middleware thats it.
+
+-> Now after adding auth middleware verifyJWT in logout route, We get access of req.user in logoutUser contoller now we can implement the 
+    logout funciton by extracting req.user._id.
+-> Now we have to update refresh_token as undefined in mongodb for that we have a method findByIdAndUpdate(), which takes argument 1st is
+    _id here req.user._id and then what will be the updated data in objects for that we have an operator of mongoDB called {$set:} to update
+    the field data like - { $set: { refreshToken: undefined}}. We can also add {new: true}.
+-> Now Clearing cookies in response and for that we need options. We clear the cookies with the help of clearCookie() method, which takes 
+    token and options in argument. And also send json response throgh ApiResponse().
+-> In production grade app if the (res) is not in use then we write it (_).
+
+

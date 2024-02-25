@@ -411,3 +411,69 @@ Although We have some headers like - CORS Headers and Security Headers
 -> If the above if block is true then we will set the localPath for coverImage.
 -> After the above process we are able to send the the data without coverImage.
 -> Now we will configure the Postman by a=making collections and adding environment variables.
+
+
+
+
+--- Access Refresh Token, Middleware and cookies ---
+-> We generated two tokens, we can do the work in only access token also. Both are generated with same method, but access token is
+    is short lived and refresh_token is long lived. access_token expires in short term and refresh_token expires in long term because 
+    A user with access token can do the Authorization related task like file - uploading, checking data etc. but if the login session   
+    expires in 15 minutes then the user have to login again, Here refresh_token comes It saves on the user side and on database as well.
+    We validate user rwith access token but they don't need to login again and again, the user just hit an endpoint which checks the user's
+    refresh_token and refresh_token in database is same or not. If tokens are same then the user loginned without entering pass and username
+
+
+---  Login User in user controller ----
+-> By using both tokens we will make loginUser. Now we will have to break the problem into steps.
+1. To get data from req.body and Validation of username or email and password
+2. Checking the the username or email already exists or not
+3. If user found then check the password correct or not 
+4. Generate access_token and refresh_token 
+5. Send the token to the user in secure cookies.
+
+-- 1 --
+-> We get the data from req.body and hold it in an object. We need username or email, one of them to login so we check throgh if-else
+    that username || email is present or not, If both are not present then we throw an error using ApiError()
+
+-- 2 --
+-> Validating User is present or not through User Model method finOne() It takes the field as argument. We want to check for two fields
+    therefore we are using {$or: [{email},{username}]}
+-> Database in different continent therefore we write await and hold it in a variable called user.
+-> If the user if not present we check throgh if() then we throw an error using APiError
+
+-- 3 --
+-> Now we will check the user password matchs with database password or not. We are doing this with bcrypt, We already made a method
+    isPasswordCorrect() to compare user password and Database password. It takes user's password in argument. then we will hold it 
+    in a variable called isPassword and write await because it is checking in database.
+-> Now If password is incorrect then we send an error throgh ApiError.
+
+-- 4 --
+-> Now We will generate access_token and refresh_token, But we are going to do this many times therefore we will keep them in a async method
+    called  generateAccessAndRefreshTokens(). The method takes userId as parameter also it use try-catch, catch handled by ApiError() and try
+    we find the user using User.findById() and writing await also hold the user details in a variable called user. 
+    Then we will generate token one by one and hold them in variables called refreshToken and accessToken.
+-> Now we generated the token and hold it in variables but We have to save the refresh_token in database. So we assign the refreshToken to 
+    the user {user.refreshToken = refreshToken} Then we save this change in database.
+-> But while saving one field in database the other fileds in model also gets initialized like - password. Therefore we pass an parameter
+    in save({validateBeforeSave: false}) means no need to validate before saving also it takes time so we write await.
+-> we return the access_token and refresh_token to the user.
+-> Now We done with the method which creates tokens, But we didn't implement in loginUser therefore we call the above method in loginUser
+    We pass the user._id as argument in method also write await because it may take time. Now we hold the returned token in an object.
+
+-- 5 -- 
+-> The refresh_token field in user is empty because we have didn't save the data in database. here we can do two things 1st is we can update
+    the refreshToken of user here like - user.refreshToken = refreshToken, 2nd method is we can make a database call.
+-> Now we send the tokens in coockies, But before that we got unwanted fields - like password from User.findOne(). So we hold the user 
+    details without password and refreshToken by select method of findById() to send the details in frontend.
+-> Now we want to send cookies and when we send coockies we have to design some options which is an object. Cookies are Bydefault modifiable
+    by anyone in frontend but when we do httpOnly: true, and secure: true Then these cookies are only modifiable from server It cannot  
+    modify in from frontend.
+-> Now we return the response in loginUser method. Status and cookies, We send individual cookies with options. we cand send cookes as many
+    as we want by {.} like - status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options)
+    then we send a json response throug ApiResponse(), which consists status code, {user: loggedInUser, accessToken, refreshToken}, 
+    message = "user logged in successfully"
+-> sending refresh token if user wants to save the tokens according to their use.
+
+
+

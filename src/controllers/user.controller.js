@@ -1,8 +1,29 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
-import {ApiError} from "../utils/apiError.js"
-import {User} from "../models/user.models.js"
-import {uploadCloudiniary} from "../utils/cloudinary.service.js"
-import {ApiResponse} from "../utils/apiResponse.js"
+import { ApiError } from "../utils/apiError.js"
+import { User } from "../models/user.models.js"
+import { uploadCloudiniary } from "../utils/cloudinary.service.js"
+import { ApiResponse } from "../utils/apiResponse.js"
+
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        // Getting the user info
+        const user = await User.findById(userId);
+
+        // Generating tokens for user
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        // Saving refreshToken into database
+        user.refreshToken = refreshToken;
+        await user.save({validateBeforeSave: false});
+
+        // returning the tokens
+        return {accessToken, refreshToken}
+    } catch (error) {
+        throw new ApiError("500", "Something went wrong while generating tokens...");
+    }
+}
+
 
 const registerUser = asyncHandler(async (req, res) => {
     // Getting the data
@@ -22,10 +43,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // User Existed or not
     const existedUser = await User.findOne({
-        $or: [{username}, {email}]
+        $or: [{ username }, { email }]
     })
-    
-    if(existedUser){
+
+    if (existedUser) {
         throw new ApiError(409, "User with same email or username is already existed...")
     }
 
@@ -34,14 +55,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // const coverImageLocalPath = req.files?.coverImage[0]?.path;
     let coverImageLocalPath;
-    if(req.file && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+    if (req.file && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
 
     // Checking the the return response of req.files
     // console.log(req.files);
 
-    if(!avatarLocalPath){
+    if (!avatarLocalPath) {
         throw new ApiError(403, "Avatar file is required...")
     }
 
@@ -50,7 +71,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const coverImage = await uploadCloudiniary(coverImageLocalPath);
 
     // Checking Uploaded on CLoudinary or not
-    if(!avatar){
+    if (!avatar) {
         throw new ApiError(405, "Avatar file is required...")
     }
 
@@ -59,7 +80,7 @@ const registerUser = asyncHandler(async (req, res) => {
         fullName,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
-        password, 
+        password,
         username: username.toLowerCase(),
         email
     })
@@ -69,7 +90,7 @@ const registerUser = asyncHandler(async (req, res) => {
         "-password -refreshToken"
     )
 
-    if(!createdUser){
+    if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the User in Database...");
     }
 
@@ -79,4 +100,65 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
-export { registerUser };
+// User Login
+const loginUser = asyncHandler(async (req, res) => {
+    // Getting Data
+    const {username, email, password} = req.body
+
+    // Validating username or email
+    if(!username || !email){
+        throw new ApiError(403, "username or email required...");
+    }
+
+
+    // Checking the user present or not in database
+    const user = await User.findOne({
+        $or: [{username}, {email}]
+    })
+
+    // checking and throwing error if user doesn't exists 
+    if(!user){
+        throw new ApiError(402, "User doesn't exists...");
+    }
+
+    // Comparing Password and sending error
+    const isPasswordValid = await user.isPassword(user.password);
+    
+    // Checking password is corrector not
+    if(!isPasswordValid){
+        throw new ApiError(401, "Invalid Password...!");
+    }
+
+
+    // Generating Tokens for the user
+    const {accessToken, refreshToken} = generateAccessAndRefreshToken(user._id);
+
+    // Holding the details of user without password and refreshToken
+    const loggedInUser = await User.findById(user._id).select(
+        "-password", "-refreshToken"
+    )
+
+    // Setting the cookie options so that it cannot be modified in frontend
+    const optins = {
+        httpOnly: true,
+        secure: true
+    }
+
+    // Returning response
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, optins)
+    .cookie("refreshToken", refreshToken, optins)
+    .json(
+        200, 
+        {   
+            user: loggedInUser, accessToken, refreshToken
+        },
+        "User logged In Successfully..."
+    )
+})
+
+export {
+    registerUser,
+    loginUser
+};

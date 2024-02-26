@@ -547,3 +547,8 @@ Although We have some headers like - CORS Headers and Security Headers
 -- Setting Endpoint in Routes --
 -> We will make a route for access token regeneration in secured routes section with route name "/refresh-token" 
 
+
+
+---- Subscription Model ----
+-> In models folder we make a subscription.models.js file, and create a schema with the help of mongoose. 
+

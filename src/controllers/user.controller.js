@@ -289,7 +289,31 @@ const getCurrentUser = asyncHandler(async (req, res)  => {
     )
 })
 
+// Account Details Updating Controller 
+const updateAccountDetails = asyncHandler(async (req, res) => {
 
+    // Getting data from request body
+    const {fullName, email} = req.body;
+
+    // finding the user by _id from req.user in mongoDB and updating in it as well
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,
+                email: email
+            }
+        },
+        {new: true}
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user, "Account Details Updated Successfully...")
+    )
+
+})
 
 export {
     registerUser,

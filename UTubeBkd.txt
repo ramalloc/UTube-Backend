@@ -520,3 +520,30 @@ Although We have some headers like - CORS Headers and Security Headers
 -> In production grade app if the (res) is not in use then we write it (_).
 
 
+--- Tokens ---
+-> Access token and refresh_token are used only for this purpose so that a user don't need to enter password and email again and again.
+-> access_token is short lived like for 1day, and after 1 day user have to login again using password and email then the user get new 
+    access_token.
+-> But in google purposed this that there should be two tokens 1st is access_token which will saved on user's browser also will be short 
+    lived like - 15 or 30 minutes and 2nd token is sessionStorage also called refresh_token which we save on user side and in database as 
+    well. 
+-> So if user's access token get expired then user get a 401 request, So in frontend we can do that if user is getting 401 request
+    when their access_token expires then they should hit an endpoint and refresh their access token. User is sending refresh_token along 
+    with request then in database a refresh_token is saved so if we found that user then we send new access token with respect to the user.
+-> Now we have to give an endpoint so that frontend user can hit and get the new access_token.
+
+-- Making Endpoint to get new access_token --
+-> So we make a controller with name refreshAccessToken which is handled by asyncHandler(). We need refresh_token for further implementation,
+    we get the refresh_token from request cookies and or from body if user is android also stores in a variable {incomingRefreshToken}.
+    then we didn't get the refresh_token then we send an error throgh ApiError().
+-> Now we have to verify the refresh_token using jwt and stores the decoded token in a variabel called {decodedToken}. Now we find  
+    _id of user using mongoose User.finById() and hold the user info in variabel {user}. Then we check user is present or not if not then 
+    we throw an error.
+-> Now we will match the saved refresh_token and incomingRefreshToken if they are not same then we throw an error. If the refresh_token matched
+    then we generate new access_token and refresh_token with a method which we defined earlier called generateAccessAndRefreshTokens().
+-> Now we make options to send the response and cookies. We send ApiResponse() in json() also sending accessTOken and refreshToken in response.
+    We should wrap the code in try-catch from decodedToken to response, so we will wrap it. And send error through ApiError in Catch block.
+
+-- Setting Endpoint in Routes --
+-> We will make a route for access token regeneration in secured routes section with route name "/refresh-token" 
+

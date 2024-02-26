@@ -585,6 +585,23 @@ Although We have some headers like - CORS Headers and Security Headers
     whole information in {user} variable.
 -> Now we return using ApiResponse().
 
+-- File Updating Controller --
+-> Now we will upate files of user like avatar, here we need middlewares 1st is multer and second is auth middleware So we will make sure
+    about the middlewares in routing.
+-> Now we make a controller with name updateUserAvatar() with asyncHandler(), Now we get the local path of file from rq.file Using req.file
+    only because we are taking one file but in case of register controller we took req.files. We are getting req.file from middleware
+    multer.
+-> We take the path of file in a variable called {avatarLocalPath = req.file?.path}. Then we check that path is present or not if not then 
+    throw error using ApiError().
+-> If avatarLocalPath is present then upload it in cloudinary using uploadCloudinary() service by passing path into its argument. Then 
+    cloudinary service returns some data we kept in a variable called avatar. Now we check for avatar url if it is not then throw an error
+    with ApiError().
+-> Now we update avatar in database, so using finByIdAndUpdate() we find user by it's id from req.user?._id and set the {avatar: avatar.url}. 
+    also unselect the "-password". And hold it in a variable to return it to the user
+-> Then we send response to the user throgh ApiResponse() in json.
+    
+-- Update Cover Image contoller -- 
+-> We implement above process as same and change the names and update in database.
 
 
 

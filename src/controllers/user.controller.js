@@ -295,6 +295,11 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     // Getting data from request body
     const {fullName, email} = req.body;
 
+    // Throwing Error if not getting data
+    if(!fullName && !email){
+        throw new ApiError(401, "All fields are required...!")
+    }
+
     // finding the user by _id from req.user in mongoDB and updating in it as well
     const user = await User.findByIdAndUpdate(
         req.user?._id,
@@ -315,11 +320,48 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 })
 
+// Updating Avatar of User
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    // Getting path of the file from multer req.file
+    const avatarLocalPath = req.file?.path;
+
+    // If path is not present then send error
+    if(!avatarLocalPath){
+        throw new ApiError(403, "Avatar File is missing...!")
+    }
+
+    // Uploading the file on cloudinary with uploadCloudinary service 
+    const avatar = await uploadCloudiniary(avatarLocalPath)
+
+    // Checking avatar url in the returned data of cloudinary 
+    if(!avatar.url){
+        throw new ApiError(400, "Error while uploading avatar...")
+    }
+
+    // Saving the avatar url in database
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {avatar: avatar.url}
+        },
+        {new: true}
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user, "Avatar File is Updated Successfully...")
+    )
+})
+
 export {
     registerUser,
     loginUser,
     logoutUser,
     refreshAccessToken,
     changeCurrentPassword,
-    getCurrentUser
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+
 };

@@ -330,28 +330,70 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Avatar File is missing...!")
     }
 
-    // Uploading the file on cloudinary with uploadCloudinary service 
-    const avatar = await uploadCloudiniary(avatarLocalPath)
+    try {
+        // Uploading the file on cloudinary with uploadCloudinary service 
+        const avatar = await uploadCloudiniary(avatarLocalPath)
+    
+        // Checking avatar url in the returned data of cloudinary 
+        if(!avatar.url){
+            throw new ApiError(400, "Error while uploading avatar...")
+        }
+    
+        // Saving the avatar url in database
+        const user = await User.findByIdAndUpdate(
+            req.user?._id,
+            {
+                $set: {avatar: avatar.url}
+            },
+            {new: true}
+        ).select("-password")
+    
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, "Avatar File is Updated Successfully...")
+        )
+    } catch (error) {
+        throw new ApiError(403, error?.message || "Avatar file is missing or unable to upload...!")
+    }   
+})
 
-    // Checking avatar url in the returned data of cloudinary 
-    if(!avatar.url){
-        throw new ApiError(400, "Error while uploading avatar...")
+// Updating Cover Image of User
+const updatecoverImage = asyncHandler(async (req, res) => {
+    // Getting path of the file from multer req.file
+    const coverImageLocalPath = req.file?.path;
+
+    // If path is not present then send error
+    if(!coverImageLocalPath){
+        throw new ApiError(403, "Avatar File is missing...!")
     }
 
-    // Saving the avatar url in database
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {avatar: avatar.url}
-        },
-        {new: true}
-    ).select("-password")
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user, "Avatar File is Updated Successfully...")
-    )
+    try {
+        // Uploading the file on cloudinary with uploadCloudinary service 
+        const coverImage = await uploadCloudiniary(coverImageLocalPath)
+    
+        // Checking coverImage url in the returned data of cloudinary 
+        if(!coverImage.url){
+            throw new ApiError(400, "Error while uploading avatar...")
+        }
+    
+        // Saving the coverImage url in database
+        const user = await User.findByIdAndUpdate(
+            req.user?._id,
+            {
+                $set: {coverImage: coverImage.url}
+            },
+            {new: true}
+        ).select("-password")
+    
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, "Cover Image File is Updated Successfully...")
+        )
+    } catch (error) {
+        throw new ApiError(403, error?.message || "Cover Image file is missing or unable to upload...!")
+    }   
 })
 
 export {

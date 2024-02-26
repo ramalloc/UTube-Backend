@@ -549,6 +549,43 @@ Although We have some headers like - CORS Headers and Security Headers
 
 
 
----- Subscription Model ----
--> In models folder we make a subscription.models.js file, and create a schema with the help of mongoose. 
+-- Subscription Model --
+-> In models folder we make a subscription.models.js file, and create a schema with the help of mongoose. We made two fields 1st is 
+    subscriber and second is 2nd is channel both consists type as "User" model.
+
+
+<--- Update COntrollers for User --->
+-- Password changing controller --
+-> We make a controller named changeCurrentPassword() implementing with asyncHandler(). To change password we need oldPassword and
+    newPassword from request so we will get them from req.body also we need user info to get the their id so therefore Here we are 
+    implementing auth middleware to check user is loggedin or not and the auth middleware gives user in request.So we can get the user 
+    from req.user and perform the password change implementation. 
+-> Now by using User of model we can find the user by their id using mongoose method findById(). We find the user by _id and hold them in 
+    a variable called {user}. 
+-> Now we will match the old password with user's database password by the using of bcrypt custom method that we made to check Password
+    is correct or not which return true or false. We store the result in a variable called {isPassword}. If password do not match then we
+    will return error using ApiError().  
+-> Now if isPassword is correct then we set {user.password = newPassword}, Then we save the changes in database with save method and making 
+    false to validateBeforeSave.
+-> Now We will send the response to user with ApiResponse in json.
+
+-- Get current User Controller --
+-> Now we are making get current user controller to get the current logged in user. So we make a controller named getCurrentUser with 
+    asyncHandler(). No we return the reponse with ApiResponse(), and inject user data from req.user in response data and a message. 
+
+-- Account Details Updating Controller --
+-> Here We make a update controller which update somw details of account like fullName, email etc. So we make controller named 
+    {updateAccountDetails()} with asyncHandler(). 
+-> In production grade web apps we make different controller to update files like - img, this is a better approach. It reduces the 
+    congestion in network because we are not updating the whole user at once.
+-> We extract fullName and email from the request body, and checked for the data if not present then throw error with ApiError().
+-> Now we have to find user in database, so we find with the _idthat we got from req.user and we will use it in User.finByIdAndUpdate()
+    method. it takes arguments 1st is {req.user?._id}, 2nd is a mongoDB Operator here we are using {$set: {}} and 3rd is {new: true} it 
+    is used for getting the updated values in return also we are unselecting password using select() method of mongoDB. Then we save the 
+    whole information in {user} variable.
+-> Now we return using ApiResponse().
+
+
+
+
 

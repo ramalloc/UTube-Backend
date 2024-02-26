@@ -194,63 +194,108 @@ const logoutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
-    
+
     // Sending Error if there is no refresh token
-    if(!incomingRefreshToken){
+    if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorized Access Request...!")
     }
-    
+
     try {
         // Verifying token using jwt.verify() 
         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
-    
+
         // Getting the user details from decodedToken 
         const user = await User.findById(decodedToken?._id);
-    
+
         // If user is not present then sending error
-        if(!user){
+        if (!user) {
             throw new ApiError(401, "Invalid refresh token...!")
         }
-    
+
         // Matching incoming refresh token and user's saved refresh token
-        if(user?.refreshToken != incomingRefreshToken){
+        if (user?.refreshToken != incomingRefreshToken) {
             throw new ApiError(401, "Refresh Token is expired...!")
         }
-    
+
         // Refresh token matched then generate new access token and refresh token
-        const {newAccessToken, newRefreshToken} = await generateAccessAndRefreshToken(user._id);
-    
+        const { newAccessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
+
         // Writing options for cookies to send in response 
         const options = {
             httpOnly: true,
             secure: true
         }
-    
+
         // Returning response and ApiResonse in json
         return res
-        .status(200)
-        .cookie("accessToken", newAccessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
-        .json(
-            new ApiResponse(
-                200, 
-                {
-                    accessToken: newAccessToken, 
-                    refreshToken: newRefreshToken
-                },
-                "Access Token Refreshed Successfully..."
+            .status(200)
+            .cookie("accessToken", newAccessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        accessToken: newAccessToken,
+                        refreshToken: newRefreshToken
+                    },
+                    "Access Token Refreshed Successfully..."
+                )
             )
-        )
     } catch (error) {
         throw new ApiError(402, error?.message || "Invalid refresh token...!")
     }
 
 })
 
+// Changing password 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    // Getting passwords from req
+    const { oldPassword, newPassword } = req.body;
+
+    try {
+        // Getting user data from request and fincing in database
+        const user = await User.findById(req.user?._id);
+
+        // Comparing old Password with user's password
+        const isPassword = await user.isPasswordCorrect(oldPassword);
+
+        // Throwing error if password do not match
+        if (!isPassword) {
+            throw new ApiError(400, "Invalid Old Password...!");
+        }
+
+        // Setting the password
+        user.password = newPassword;
+
+        // Saving the password in database
+        await user.save({ validateBeforeSave: false });
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(200, {}, "Password Changed Successfully...")
+            )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid Password...!")
+    }
+})
+
+// Getting Current User Controller
+const getCurrentUser = asyncHandler(async (req, res)  => {
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, req.user, "Current User Fetched Successfully...")
+    )
+})
+
+
 
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser
 };

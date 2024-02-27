@@ -711,5 +711,26 @@ Although We have some headers like - CORS Headers and Security Headers
 -> Now we will return response throgh ApiResponse in json and return's first object and from that watchHistory -  user[0].watchHistory.
 
 
+-- Setting Routes --
+-Posting-
+-> Now we will set the routes for above after refresh_token controllers.
+-> Made change password route by using post method passing verifyJWT middleware to verify logged in user and changeCurrentPassword controller
+-> Made current user route by using post method passing verifyJWT middleware to verify logged in user and getCurrentUser controller
+
+-Patch-
+-> Made update account route by using patch method passing verifyJWT middleware to verify logged in user and updateAccountDetails controller.
+-> Made update avatar route by using patch method passing first middleware verifyJWT to verify logged in user then second middleware upload
+    which comes from multer used as {upload.single("avatar)} because sending only one file and in last updateUserAvatar controller 
+-> Made update coverImage route by using patch method passing first middleware verifyJWT to verify logged in user then second middleware 
+    upload which comes from multer used as {upload.single("/coverImage")} because sending only one file and in last updateCoverImage controller .
+
+-Get-
+-> Below we are getting the value from params so we will use get method write the route with colon to get data from params or url 
+-> Made Getting details of user's channel route and writing username in params because we are calling it in controller as username 
+    ,we write params like this - /:username.
+-> 
+
+
+
 
 

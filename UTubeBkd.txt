@@ -605,4 +605,82 @@ Although We have some headers like - CORS Headers and Security Headers
 
 
 
+--- Subscription Schema Model Theory --- 
+-> This controller returns the profile of user, here we have to get subscriber and count of subscribed also if watching any video or channel
+    if channel subscribed then it should be seen as subscribed.
+-> The image is model of Subscription Schema - E:\Web Developement\Backend\UTube_Backend\Subscription Schema Document Model.png
+-> Whenever a user subscribes a channel a new document created which contains Channel Details and Subscriber Details.
+-> Suppose there are subscribers - a, b, c, d, e and Channels - CAC, HCC, FCC
+-> Now if user {a} subscribes channel CAC then a new document created which will contain Channel and subscriber - {CAC, a} , Then Suppose
+    user {b} also subscribed channel {CAC} then again a new document created which contains - {CAC, b}. 
+-> Now let subscriber {c} also subscribed channel {CAC} then a document created - {CAC, c}, again {c} subscribed channel {HCC} then new 
+    document created - {HCC, c} and again if {c} subscribed {FCC} then document created - {FCC, c}
+-> So now if we want the subscriber of any channel then we search the documents which contains name of channel and count the no. of documents.
+    for example- if we want to know the subscriber of {CAC} then we search the channel name in documents and count the documents above we 
+    have 3 documents which contains channel name {CAC} so the no. ofsubscriber is - 3.
+-> Now ifi we want to know that a user subscribed how many channels then we search for the subscriber name in the documents and the count of
+    documents which contains the subscriber name is the no. of channels which are subscribed by subscriber. for example - how  many channels
+    subscribed by subscriber {c} then we look out for subscriber name {c} in the documents and count the no. of documents and count is 
+    the no. of channels the user subscribed.
+
+
+
+
+--- Mongodb aggregation pipelines ---
+-> We done with the subscriptions model, Now we join the subscription model with user model and this is called left join means join 
+    the information that we are getting from the subscription into the user model and for that we need aggregation pipeline.
+-> Aggregation Pipeline - An aggregation pipeline consists of one or more stages that process documents.
+    - Each stage performs an operation on the input documents. For example, a stage can filter documents, group documents, and calculate  
+    values.
+    - The documents that are output from a stage are passed to the next stage.
+    - An aggregation pipeline can return results for groups of documents. For example, return the total, average, maximum, and minimum values.
+-> We are writing the aggregation pipeline in user controller because we want to get the channel details of the particular username.
+-> Now we make a controller which gives user channel profile named as getUserChannelProfile() with the use of asyncHandler() and export it.
+-> So when we go to any channel profile we go with url means we will also get the data from request params, so we extract the username from
+    req.params in an object. Now we check the username is present or not, also trim the username then if usrname is not present then we
+    throw an error with ApiError().
+-> When we are getting username then we can get the user from database using find() method and then we will perform further operations. But 
+    We don't need to do this long process instead of it we can use aggregation pipeline from aggregate() method which takes pipelines as 
+    objects like this - User.aggregate({}, {},..), also we will write await. The value that comes in return after writing aggregation 
+    pipelines is in array, SO we have to manage the array as well.
+-> Now we hold the aggregation in a variable called channel and write 1st pipeline as {$match} which takes what to find and in what field 
+    like this - {$match: {usrname: username?.toLowerCase()} } also we done the username to lower case.
+-> Now we get the user in the database then we want to see that how many subscriber of that user's channel for that we have a pipeline
+    {$lookup} which takes some fields 1st is {from: } this is the source model from where we want join or get the data so we write the
+    value of from is {from: subscriptions} in lowercase and in plural.
+    2nd is {localField: } which takes _id of user {localField: _id}, 3rd field is {foreignField: } which is used to select and get the field
+    from the source model here is subscriptions model here we write or select user's channel in subscription model as {foreignField: channel} 
+    to get the subscriber of the user. 4th filed is {as: } which is used to save as the document as an output with a name and the return 
+    output is an array.
+-> Above we didn't count the documents of subscriber
+
+-> Now we will get the channels that the particular user subscribed, We do it with writing next pipeline as {$lookup: } So therefore to get
+    the subscribed count of any user we select the subscriber as foreignField. and other fileds will be same and we write the {as: } field
+    {as: subscribedTo}.
+
+-> Now in the above pipelines we are getting the data in the array and both output is separated and further they treated as fileds we want to
+    add those fields in user model for that we have a pipeline {$addFields: }. So 1st field we set {subscribersCount: } now we collected the 
+    subscribers in above pipeline as {$subscribers} if want to calculate them for that we have property {$size: } which gives the size of any
+    field, here field is {$subscribers} so it will be like - {$size: "$subscribers"}. 2nd field we are adding is {channelsSubscriberToCount:}
+    then we calculate the size of "$subscribedTo" field.
+-> from above aggregation we added to fileds in user model which contains subscribers and channelsSubscriberToCount.
+
+-> Now we want if any user go to any channel we want to show the channel subscribed to the user for that we will send true/false to 
+    frontend, Therefore we have to write another pipeline in {$addFields} below.
+-> We made pipeline named {isSubscribed: } here we use condition property {$cond: } we give three parameter in {$cond} 1st is {if: } which 
+    consists condition, 2nd is {then: } and 3rd is {else: }.
+-> In {if: } we want to check that the document contains the _id of user in subscriber field or not. Again we have an operator {$in: }which
+    checks the array and object both. $in takes two parameters first is what to find and 2nd is in which object to find. So we will use $in 
+    $in: [req.user?._id, "$subscribers.subscriber"]. We write {then: true} and {else: false}
+
+-> Next pipeline after addFields is $project is used to give project mmeans it doesn't give the whole value to the demanded user it gives 
+    selected things and the fileds we want to select we write their'r value 1 like this - {fullName: 1,}. We should not give all values 
+    because it may lead network traffic.
+
+-> Now we will return the channel after checking channel exists or not and after handling error.  We send response in ApiResponse()
+
+
+
+
+
 

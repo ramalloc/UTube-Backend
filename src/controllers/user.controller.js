@@ -281,22 +281,22 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 })
 
 // Getting Current User Controller
-const getCurrentUser = asyncHandler(async (req, res)  => {
+const getCurrentUser = asyncHandler(async (req, res) => {
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, req.user, "Current User Fetched Successfully...")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, req.user, "Current User Fetched Successfully...")
+        )
 })
 
 // Account Details Updating Controller 
 const updateAccountDetails = asyncHandler(async (req, res) => {
 
     // Getting data from request body
-    const {fullName, email} = req.body;
+    const { fullName, email } = req.body;
 
     // Throwing Error if not getting data
-    if(!fullName && !email){
+    if (!fullName && !email) {
         throw new ApiError(401, "All fields are required...!")
     }
 
@@ -309,14 +309,14 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
                 email: email
             }
         },
-        {new: true}
+        { new: true }
     )
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user, "Account Details Updated Successfully...")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, user, "Account Details Updated Successfully...")
+        )
 
 })
 
@@ -326,36 +326,36 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.file?.path;
 
     // If path is not present then send error
-    if(!avatarLocalPath){
+    if (!avatarLocalPath) {
         throw new ApiError(403, "Avatar File is missing...!")
     }
 
     try {
         // Uploading the file on cloudinary with uploadCloudinary service 
         const avatar = await uploadCloudiniary(avatarLocalPath)
-    
+
         // Checking avatar url in the returned data of cloudinary 
-        if(!avatar.url){
+        if (!avatar.url) {
             throw new ApiError(400, "Error while uploading avatar...")
         }
-    
+
         // Saving the avatar url in database
         const user = await User.findByIdAndUpdate(
             req.user?._id,
             {
-                $set: {avatar: avatar.url}
+                $set: { avatar: avatar.url }
             },
-            {new: true}
+            { new: true }
         ).select("-password")
-    
+
         return res
-        .status(200)
-        .json(
-            new ApiResponse(200, user, "Avatar File is Updated Successfully...")
-        )
+            .status(200)
+            .json(
+                new ApiResponse(200, user, "Avatar File is Updated Successfully...")
+            )
     } catch (error) {
         throw new ApiError(403, error?.message || "Avatar file is missing or unable to upload...!")
-    }   
+    }
 })
 
 // Updating Cover Image of User
@@ -364,37 +364,129 @@ const updatecoverImage = asyncHandler(async (req, res) => {
     const coverImageLocalPath = req.file?.path;
 
     // If path is not present then send error
-    if(!coverImageLocalPath){
+    if (!coverImageLocalPath) {
         throw new ApiError(403, "Avatar File is missing...!")
     }
 
     try {
         // Uploading the file on cloudinary with uploadCloudinary service 
         const coverImage = await uploadCloudiniary(coverImageLocalPath)
-    
+
         // Checking coverImage url in the returned data of cloudinary 
-        if(!coverImage.url){
+        if (!coverImage.url) {
             throw new ApiError(400, "Error while uploading avatar...")
         }
-    
+
         // Saving the coverImage url in database
         const user = await User.findByIdAndUpdate(
             req.user?._id,
             {
-                $set: {coverImage: coverImage.url}
+                $set: { coverImage: coverImage.url }
             },
-            {new: true}
+            { new: true }
         ).select("-password")
-    
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(200, user, "Cover Image File is Updated Successfully...")
+            )
+    } catch (error) {
+        throw new ApiError(403, error?.message || "Cover Image file is missing or unable to upload...!")
+    }
+})
+
+
+
+// Get User/Channel Profile Details controller
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+    // Getting Username from url
+    const { username } = req.params;
+
+    // If username is not present then sending error
+    if (!(username.trim())) {
+        throw new ApiError(400, "Username is missing...!")
+    }
+
+    // Writing Aggreagation pipelines
+    const channel = await User.aggregate([
+        // 1st pipeline to find user with $match property
+        // Also filtered one document below
+        {
+            $match: {
+                username: username?.toLowerCase()
+            }
+        },
+        // 2nd pipeline to find subscriber of the above User using lookup
+        // We are selecting channel in the subscription document 
+        {
+            $lookup: {
+                from: "subscriprions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+
+        // 3rd pipeline to get the user subscribed to channels using lookup
+        {
+            $lookup: {
+                from: "subscriprions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+
+        // Adding the above field in User Model with addField
+        {
+            $addFields: {
+                // Counting subscriber with $size and naming the filed subscribersCount in User model
+                subscribersCount: {
+                    $size: "$subscribers"
+                },
+                channelsSubscriberToCount: {
+                    $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+
+        // Projection - Here we project the channel values 
+        {
+            $project: {
+                fullName: 1,
+                username: 1,
+                email: 1,
+                avatar: 1,
+                coverImage: 1,
+                subscribersCount: 1,
+                channelsSubscriberToCount: 1,
+            }
+        }
+    ]);
+    // TODO: console.log(channel) to see the return of aggregation pipeline
+
+        // Aggregation Pipeline mostly returns array but the array[0] object is useful for us.
+        // Checking if there is no channel length then return error 
+        if(!channel.length){
+            throw new ApiError(404, "Channel doesn't exist...!")
+        }
+
+        // Now if channel exists then we will return the channel 
         return res
         .status(200)
         .json(
-            new ApiResponse(200, user, "Cover Image File is Updated Successfully...")
+            new ApiResponse(200, channel, "User Channel Details are fetched successfully...!")
         )
-    } catch (error) {
-        throw new ApiError(403, error?.message || "Cover Image file is missing or unable to upload...!")
-    }   
 })
+
 
 export {
     registerUser,
@@ -405,5 +497,5 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-
+    updatecoverImage
 };

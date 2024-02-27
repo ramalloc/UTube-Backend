@@ -681,6 +681,35 @@ Although We have some headers like - CORS Headers and Security Headers
 
 
 
+--- Aggregation Pipelines to get Watch History  ---
+-> In user model we have watchHistory filed which is a array of objects, so we have to join watch History and Video model with aggregation 
+    pipelines we will add videos _id in the watchHistory array so we will get many the documents of videos.
+-> When we do a lookup from watchHistory in videos but there is owner of videos in video model which contains user details therefore we have
+    to do one more lookup in a single document to get the owner from user. So we will join video and user also in nested lookup. We have to 
+    do join watchHistory and videos and again Immediately we have to join videos and user to get the So that we can get the full document.
+
+-> Now we will make getWatchHistory() controller with asyncHandler(), When we write req.user._id we get string not id of the object, when
+    we use findById() mongoose behind the scene converts it intomongoDB object id. But when we use aggregation pipeline we are not using 
+    mangoose methods then the id will not change itself we have to change the _id into mongoDB object id manually by the use of mongoose 
+    ObjectID() method like this - new mongoose.Types.ObjectID(), and we pass the req.user._id in this method.
+-> Now we find the user with $match operator with _id as mongoose.Types.ObjectID(req.user._id)
+-> Now we have to get watchHistory by $lookup , it takes some fields 1st is from which we set "videos", 2nd is localField: watchHistory,
+    foreignField: _id and as : watchHistory.
+-> Now after the watchHistory lookup we are at the situation where we have many documents of videos in watchHistory. But now we have to 
+    make sub-pipeline to get the owner details in each and every document Immediately after first lookup.
+-> So owe can add further pipeline in a pipeline with a property called {pipeline} and further down we can add as many pipelines as we need.
+    then we write the pipeline as - pipeline: [{}]. 
+-> Now we are in videos model and we will write $lookup pipeline in the array for user model. then we provide from: users, localField:
+    "owner", foreignField: _id and as owner.
+-> Now we don't want to give all info of user into the watchHistory therefore we make further one more pipeline for selected data projection.
+    In $project we are sending fullName, username and avatar only.
+-> Now owner in video become an array which contains some data in objects. But again we are adding one more pipline to structure the data 
+    or extracting the data from owner array. So we will make a new field by $addFields Operator with the same name "owner" so that the 
+    existing field gets overwrite with structured data.
+    So as previous pipeline returning array and we need only first object which is useful to us. so here we use {$first: } operator which 
+    takes field as input from which we get the first data and we use it in owner as -  {owner: { $first: "$owner"}}
+-> Now we will return response throgh ApiResponse in json and return's first object and from that watchHistory -  user[0].watchHistory.
+
 
 
 

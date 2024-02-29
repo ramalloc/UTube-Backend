@@ -722,14 +722,16 @@ Although We have some headers like - CORS Headers and Security Headers
 -> Made update avatar route by using patch method passing first middleware verifyJWT to verify logged in user then second middleware upload
     which comes from multer used as {upload.single("avatar)} because sending only one file and in last updateUserAvatar controller 
 -> Made update coverImage route by using patch method passing first middleware verifyJWT to verify logged in user then second middleware 
-    upload which comes from multer used as {upload.single("/coverImage")} because sending only one file and in last updateCoverImage controller .
+    upload which comes from multer used as {upload.single("coverImage")} because sending only one file and in last updateCoverImage controller .
 
 -Get-
 -> Below we are getting the value from params so we will use get method write the route with colon to get data from params or url 
 -> Made Getting details of user's channel route and writing username in params because we are calling it in controller as username 
     ,we write params like this - /:username.
--> 
 
+--- Checking routes ---
+-> In logoutUser we are having an error because we are setting refresh_token: undefined, instead of it we have mongoDB operator {$unset: } 
+    we passes 1 with respect to that field which we want to unset. {$unst{refreshToken: 1}}
 
 
 
